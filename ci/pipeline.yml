@@ -13,6 +13,7 @@ jobs:
         params:
           build: compiled
           tag: version/number
+          tag_as_latest: true
       - put: version
         params: {file: version/number}
 
