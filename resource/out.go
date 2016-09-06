@@ -112,6 +112,11 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 			CodeSha: *config.CodeSha256,
 		}
 
+		if err := ctx.File("version", []byte(*version)); err != nil {
+			return nil, errors.Wrap(err,
+				"failed to persist function configuration")
+		}
+
 		// Add some nice-to-have metadata
 		resp.AddMeta("arn", *config.FunctionArn)
 		resp.AddMeta("runtime", *config.Runtime)
