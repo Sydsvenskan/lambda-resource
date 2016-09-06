@@ -89,19 +89,15 @@ type CommandResponseMetadata struct {
 func NewContext(
 	args []string, in io.Reader, out io.Writer, log io.Writer,
 ) (*CommandContext, error) {
-	if len(args) != 2 {
-		return nil, fmt.Errorf(
-			"expected 2 arguments strings, got %d", len(args),
-		)
-	}
-
 	ctx := &CommandContext{
 		in:  in,
 		out: out,
 	}
 
 	ctx.commandName = filepath.Base(args[0])
-	ctx.directory = args[1]
+	if len(args) > 1 {
+		ctx.directory = args[1]
+	}
 
 	return ctx, nil
 }
