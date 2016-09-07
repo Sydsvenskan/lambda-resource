@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/Sydsvenskan/concourse"
 	"github.com/aws/aws-sdk-go/aws"
@@ -101,15 +100,8 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 		// Store the version so that it can be used by the alias "tagging"
 		version = config.Version
 
-		// Parse the version so that we can make it part of our output
-		versionNumber, err := strconv.Atoi(*config.Version)
-		if err != nil {
-			return nil, errors.Wrap(err,
-				"could not parse function version")
-		}
-		resp.Version = Version{
-			Version: versionNumber,
-			CodeSha: *config.CodeSha256,
+		resp.Version = concourse.ResourceVersion{
+			"version": *config.Version,
 		}
 
 		if err := ctx.File("version", []byte(*version)); err != nil {
@@ -122,8 +114,6 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 		resp.AddMeta("runtime", *config.Runtime)
 		resp.AddMeta("timeout", strconv.FormatInt(*config.Timeout, 10))
 		resp.AddMeta("memory", strconv.FormatInt(*config.MemorySize, 10))
-	} else {
-		resp.Version = Version{Timestamp: time.Now().Unix()}
 	}
 
 	// Tag the version with an alias
@@ -146,6 +136,15 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 		if err := ctx.JSON("alias.json", aliasConfig); err != nil {
 			return resp, errors.Wrap(err,
 				"failed to persist function configuration")
+		}
+
+		if resp.Version == nil {
+			resp.Version = concourse.ResourceVersion{
+				"alias":   *cmd.Params.Alias,
+				"version": *version,
+			}
+		} else {
+			resp.Version["alias"] = *cmd.Params.Alias
 		}
 	}
 

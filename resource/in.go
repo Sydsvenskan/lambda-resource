@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/Sydsvenskan/concourse"
@@ -60,8 +61,8 @@ func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 	}
 
 	return &concourse.CommandResponse{
-		Version: Version{
-			Timestamp: time.Now().Unix(),
+		Version: concourse.ResourceVersion{
+			"timestamp": strconv.FormatInt(time.Now().Unix(), 10),
 		},
 	}, nil
 }

@@ -56,7 +56,7 @@ type CommandHandler interface {
 }
 
 // ResourceVersion is arbitrary version info that identifies ar
-type ResourceVersion interface{}
+type ResourceVersion map[string]string
 
 // CommandResponse is what get's returned to Concourse (JSON on Stdout) when
 // we've successfully completed the task.

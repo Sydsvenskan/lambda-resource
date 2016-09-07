@@ -25,16 +25,6 @@ type PayloadSpec struct {
 	PayloadFile *string `json:"payload_file"`
 }
 
-// Version is what we use to version the Lambda resource
-type Version struct {
-	// CodeSha is the sha256 hash of the uploaded function code.
-	CodeSha string `json:"codesha,omitempty"`
-	// Version is the function version assigned by lambda on publish.
-	Version int `json:"version,omitempty"`
-	// Timestamp is used as version result on function invokes.
-	Timestamp int64 `json:"timestamp,omitempty"`
-}
-
 // LambdaCommand can return a lambda source
 type LambdaCommand interface {
 	LambdaSource() *Source

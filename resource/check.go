@@ -14,7 +14,7 @@ type CheckCommand struct {
 	// Source definition
 	Source Source `json:"source"`
 	// Params passed to the resource
-	Version *Version `json:"version"`
+	Version concourse.ResourceVersion `json:"version"`
 }
 
 // LambdaSource returns the lambda source information
@@ -22,12 +22,27 @@ func (cmd *CheckCommand) LambdaSource() *Source {
 	return &cmd.Source
 }
 
+func getVersionNumber(v concourse.ResourceVersion) *int {
+	if v == nil {
+		return nil
+	}
+	if s, ok := v["version"]; ok {
+		v, err := strconv.Atoi(s)
+		if err == nil {
+			return &v
+		}
+	}
+	return nil
+}
+
 // HandleCommand runs the command
 func (cmd *CheckCommand) HandleCommand(ctx *concourse.CommandContext) (
 	*concourse.CommandResponse, error,
 ) {
 	api := LambdaClient(cmd.Source)
-	var newVersions []Version
+
+	var newVersions []concourse.ResourceVersion
+	incomingVersion := getVersionNumber(cmd.Version)
 
 	if cmd.Source.Alias == nil {
 		req := lambda.ListVersionsByFunctionInput{
@@ -44,15 +59,14 @@ func (cmd *CheckCommand) HandleCommand(ctx *concourse.CommandContext) (
 					continue
 				}
 
-				version, err := strconv.Atoi(*v.Version)
+				itemVersion, err := strconv.Atoi(*v.Version)
 				if err != nil {
-					continue
+					return nil, errors.Wrap(err, "failed to parse function version")
 				}
 
-				if cmd.Version == nil || version > cmd.Version.Version {
-					newVersions = append(newVersions, Version{
-						Version: version,
-						CodeSha: *v.CodeSha256,
+				if incomingVersion == nil || itemVersion > *incomingVersion {
+					newVersions = append(newVersions, concourse.ResourceVersion{
+						"version": *v.Version,
 					})
 				}
 			}
@@ -76,34 +90,37 @@ func (cmd *CheckCommand) HandleCommand(ctx *concourse.CommandContext) (
 			return nil, errors.Wrap(err, "failed to check configuration")
 		}
 
-		version, err := strconv.Atoi(*config.Version)
+		itemVersion, err := strconv.Atoi(*config.Version)
 		if err != nil {
-			return nil, errors.Wrap(err,
-				"could not parse function version")
+			return nil, errors.Wrap(err, "failed to parse function version")
 		}
 
-		if cmd.Version == nil || version != cmd.Version.Version {
-			newVersions = append(newVersions, Version{
-				Version: version,
-				CodeSha: *config.CodeSha256,
+		if incomingVersion == nil || itemVersion > *incomingVersion {
+			newVersions = append(newVersions, concourse.ResourceVersion{
+				"version": *config.Version,
+				"alias":   *cmd.Source.Alias,
 			})
 		}
 	}
 
-	// Some annoying copying here, might have to change the interface for
-	// the check command after all... but I'm not sure what I would change it to.
-	resp := concourse.CommandResponse{
-		Versions: make([]concourse.ResourceVersion, len(newVersions)),
-	}
-	for i, v := range newVersions {
-		resp.Versions[i] = v
-	}
-	return &resp, nil
+	return &concourse.CommandResponse{
+		Versions: newVersions,
+	}, nil
 }
 
 // ByVersion sorts a slice of Versions by version number
-type ByVersion []Version
+type ByVersion []concourse.ResourceVersion
 
-func (l ByVersion) Len() int           { return len(l) }
-func (l ByVersion) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-func (l ByVersion) Less(i, j int) bool { return l[i].Version < l[j].Version }
+func (l ByVersion) Len() int      { return len(l) }
+func (l ByVersion) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
+func (l ByVersion) Less(i, j int) bool {
+	iv, err := strconv.Atoi(l[i]["version"])
+	if err != nil {
+		panic(err.Error())
+	}
+	jv, err := strconv.Atoi(l[j]["version"])
+	if err != nil {
+		panic(err.Error())
+	}
+	return iv < jv
+}
