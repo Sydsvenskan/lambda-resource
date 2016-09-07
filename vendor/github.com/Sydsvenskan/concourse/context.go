@@ -92,6 +92,7 @@ func NewContext(
 	ctx := &CommandContext{
 		in:  in,
 		out: out,
+		log: log,
 	}
 
 	ctx.commandName = filepath.Base(args[0])
