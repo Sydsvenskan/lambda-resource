@@ -3,12 +3,12 @@ package resource
 import (
 	"archive/zip"
 	"bytes"
-	"crypto/md5"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 
 	"github.com/Sydsvenskan/concourse"
@@ -165,19 +165,27 @@ func codePayload(p PutParams) ([]byte, error) {
 	}
 
 	if p.CodeDirectory != nil {
-		rootInfo, err := os.Stat(*p.CodeDirectory)
+		dirPath, err := filepath.Abs(*p.CodeDirectory)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not get code directory info")
+			return nil, errors.Wrapf(
+				err, "failed to resolve absolute path for %q", *p.CodeDirectory,
+			)
+		}
+
+		rootInfo, err := os.Stat(dirPath)
+		if err != nil {
+			return nil, errors.Wrapf(
+				err, "could not get code directory %q info", dirPath,
+			)
 		}
 
 		var buf bytes.Buffer
 		w := zip.NewWriter(&buf)
-		if err := zipRecurse(w, *p.CodeDirectory, "", rootInfo); err != nil {
+		if err := zipRecurse(w, dirPath, "", rootInfo); err != nil {
 			return nil, errors.Wrap(err, "failed to create zip payload")
 		}
 		_ = w.Close()
 
-		fmt.Fprintf(os.Stderr, "Zip file hash %x", md5.Sum(buf.Bytes()))
 		return buf.Bytes(), nil
 	}
 
