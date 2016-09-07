@@ -1,0 +1,46 @@
+jobs:
+  - name: build
+    serial: true
+    plan:
+      - get: sources
+        trigger: true
+      - put: upload
+        resource: function
+        params:
+          code_dir: sources/sample/function
+          alias: TEST
+      - get: test
+        resource: function
+        params:
+          alias: TEST
+          payload:
+            echo: this string
+      - put: release
+        resource: function
+        params:
+          alias: PROD
+          version_file: upload/version
+
+resources:
+  - name: sources
+    type: git
+    source:
+      uri: git@github.com:Sydsvenskan/lambda-resource.git
+      branch: sample
+      paths:
+        - sample
+      private_key: {{github_deploy_key}}
+  - name: function
+    type: lambda
+    source:
+      function_name: Dummy
+      alias: TEST
+      access_key_id: {{aws_id}}
+      secret_access_key: {{aws_secret}}
+      region_name: {{aws_region}}
+
+resource_types:
+  - name: lambda
+    type: docker-image
+    source:
+      repository: hdsydsvenskan/lambda-resource
