@@ -25,11 +25,6 @@ type InParams struct {
 	Alias *string `json:"alias"`
 }
 
-// LambdaSource returns the lambda source information
-func (cmd *InCommand) LambdaSource() *Source {
-	return &cmd.Source
-}
-
 // HandleCommand runs the in command
 func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 	*concourse.CommandResponse, error,
@@ -42,7 +37,7 @@ func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 	api := LambdaClient(cmd.Source)
 
 	result, err := InvokeFunction(
-		api, cmd, alias,
+		api, cmd.Source, alias,
 		cmd.Params.PayloadSpec,
 	)
 	if err != nil {

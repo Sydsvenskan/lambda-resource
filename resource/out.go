@@ -25,22 +25,21 @@ type OutCommand struct {
 	Params PutParams `json:"params"`
 }
 
-// LambdaSource returns the lambda source information
-func (cmd *OutCommand) LambdaSource() *Source {
-	return &cmd.Source
-}
-
 // PutParams is the params used when put:ing a resource.
 type PutParams struct {
 	// ZipFile is a path to a zip archive containing the function code.
 	ZipFile *string `json:"zip_file"`
-	// CodeDirectory is a path
+	// CodeDirectory is a path to a directory containing the function
+	// implementation
 	CodeDirectory *string `json:"code_dir"`
+	// CodeFile is a path to the file implementing the function
+	CodeFile *string `json:"code_file"`
 	// Alias is used to "tag" a function with f.ex. a "PROD" or "TEST" alias.
 	Alias *string `json:"alias"`
 	// Version can be used together with "Alias" to tag a specific version
 	// without updating the function code.
-	Version     *string `json:"version"`
+	Version *string `json:"version"`
+	// VersionFile is a file to read the version number from
 	VersionFile *string `json:"version_file"`
 }
 
@@ -142,7 +141,9 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 }
 
 func hasCodePayload(p PutParams) bool {
-	return p.ZipFile != nil || p.CodeDirectory != nil
+	return p.ZipFile != nil ||
+		p.CodeDirectory != nil ||
+		p.CodeFile != nil
 }
 
 func codePayload(p PutParams) ([]byte, error) {
@@ -172,6 +173,18 @@ func codePayload(p PutParams) ([]byte, error) {
 		var buf bytes.Buffer
 		w := zip.NewWriter(&buf)
 		if err := zipRecurse(w, dirPath, "", rootInfo); err != nil {
+			return nil, errors.Wrap(err, "failed to create zip payload")
+		}
+		_ = w.Close()
+
+		return buf.Bytes(), nil
+	}
+
+	if p.CodeFile != nil {
+		baseName := filepath.Base(*p.CodeFile)
+		var buf bytes.Buffer
+		w := zip.NewWriter(&buf)
+		if err := zipHandleFile(w, *p.CodeFile, baseName); err != nil {
 			return nil, errors.Wrap(err, "failed to create zip payload")
 		}
 		_ = w.Close()

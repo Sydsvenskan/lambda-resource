@@ -17,11 +17,6 @@ type CheckCommand struct {
 	Version concourse.ResourceVersion `json:"version"`
 }
 
-// LambdaSource returns the lambda source information
-func (cmd *CheckCommand) LambdaSource() *Source {
-	return &cmd.Source
-}
-
 func getVersionNumber(v concourse.ResourceVersion) *int {
 	if v == nil {
 		return nil
