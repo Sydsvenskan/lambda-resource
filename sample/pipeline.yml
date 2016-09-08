@@ -19,7 +19,7 @@ jobs:
         resource: function
         params:
           alias: PROD
-          code_dir: sources/sample/function
+          version_file: upload/version
 
 
 resources:

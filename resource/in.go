@@ -15,6 +15,8 @@ type InCommand struct {
 	Source Source `json:"source"`
 	// Params passed to the resource
 	Params InParams `json:"params"`
+	// Version is used in the implicit post `put` `get`
+	Version concourse.ResourceVersion
 }
 
 // InParams is the params used when get:ing a resource (invoking a function).
@@ -34,32 +36,42 @@ func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 		alias = cmd.Params.Alias
 	}
 
-	api := LambdaClient(cmd.Source)
+	if cmd.Params.HasPayload() {
+		api := LambdaClient(cmd.Source)
 
-	result, err := InvokeFunction(
-		api, cmd.Source, alias,
-		cmd.Params.PayloadSpec,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if result != nil {
-		fmt.Fprintln(ctx.Log, "successfully invoked function")
-
-		return nil, errors.Wrap(
-			PersistResult(ctx, result),
-			"failed to persist invoke result",
+		result, err := InvokeFunction(
+			api, cmd.Source, alias,
+			cmd.Params.PayloadSpec,
 		)
+		if err != nil {
+			return nil, err
+		}
+		if result != nil {
+			fmt.Fprintln(ctx.Log, "successfully invoked function:")
+			if _, err := ctx.Log.Write(result.Payload); err != nil {
+				return nil, errors.Wrap(err, "failed to print payload")
+			}
+
+			return nil, errors.Wrap(
+				PersistResult(ctx, result),
+				"failed to persist invoke result",
+			)
+		}
+
+		return &concourse.CommandResponse{
+			Version: concourse.ResourceVersion{
+				"timestamp": strconv.FormatInt(time.Now().Unix(), 10),
+			},
+		}, nil
 	}
 
-	if result == nil {
-		fmt.Fprintln(ctx.Log, "function was not invoked")
-		return &concourse.CommandResponse{}, nil
+	if cmd.Version != nil {
+		if err := ctx.File("version", []byte(cmd.Version["version"])); err != nil {
+			return nil, errors.Wrap(err, "failed to persist version")
+		}
 	}
 
 	return &concourse.CommandResponse{
-		Version: concourse.ResourceVersion{
-			"timestamp": strconv.FormatInt(time.Now().Unix(), 10),
-		},
+		Version: cmd.Version,
 	}, nil
 }

@@ -134,6 +134,11 @@ func PersistResult(
 	return nil
 }
 
+// HasPayload checks if the
+func (spec *PayloadSpec) HasPayload() bool {
+	return spec.Payload != nil || spec.PayloadFile != nil
+}
+
 func payloadData(spec PayloadSpec) ([]byte, error) {
 	if spec.Payload != nil {
 		return json.Marshal(spec.Payload)
