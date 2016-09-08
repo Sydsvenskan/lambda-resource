@@ -38,6 +38,7 @@ Publishes a new version of the function. `zip_file` or `code_dir` are used to up
 
 * `zip_file`: *Optional*. A zip file containing the function code.
 * `code_dir`: *Optional*. A directory containing the function code.
+* `code_file`: *Optional*. Single (js) file containing the function code.
 * `alias`: *Optional*. An alias to tag the new version with. Defaults to the source alias if omitted. If no alias is present here or in source the new version will just be published as is.
 * `version`: *Optional*. If no function code has been provided 'version' can be specified together with `alias` to tag an existing version.
 * `version_file`: *Optional*. Load a version number from file. If no function code has been provided 'version_file' can be specified together with `alias` to tag an existing version.
