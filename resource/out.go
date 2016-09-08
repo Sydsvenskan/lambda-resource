@@ -88,14 +88,9 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 			return nil, errors.Wrap(err, "failed to update function code")
 		}
 
-		fmt.Fprintf(os.Stderr,
+		fmt.Fprintf(ctx.Log,
 			"successfully updated function to version %s (sha256: %s)\n",
 			*config.Version, *config.CodeSha256)
-
-		if err := ctx.JSON("function.json", config); err != nil {
-			return nil, errors.Wrap(err,
-				"failed to persist function configuration")
-		}
 
 		// Store the version so that it can be used by the alias "tagging"
 		version = config.Version
@@ -129,14 +124,9 @@ func (cmd *OutCommand) HandleCommand(ctx *concourse.CommandContext) (
 				*cmd.Params.Alias, *version)
 		}
 
-		fmt.Fprintf(os.Stderr,
+		fmt.Fprintf(ctx.Log,
 			"successfully set the alias %s to version %s\n",
 			*aliasConfig.Name, *aliasConfig.FunctionVersion)
-
-		if err := ctx.JSON("alias.json", aliasConfig); err != nil {
-			return resp, errors.Wrap(err,
-				"failed to persist function configuration")
-		}
 
 		if resp.Version == nil {
 			resp.Version = concourse.ResourceVersion{

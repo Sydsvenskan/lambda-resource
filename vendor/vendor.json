@@ -3,11 +3,11 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "cSCA32Ob1vXMvTNFh/bCvIY1+Bs=",
+			"checksumSHA1": "Qy6qDLKwYDJFKragnoF47vOvTRE=",
 			"origin": "github.com/Sydsvenskan/lambda-resource/vendor/github.com/Sydsvenskan/concourse",
 			"path": "github.com/Sydsvenskan/concourse",
-			"revision": "91232b3ecc2ed849ca8120b3481d4aaa2e37177f",
-			"revisionTime": "2016-09-07T11:51:49Z"
+			"revision": "41b6dc83cb1e753f55f1b8c9453634475b1666a2",
+			"revisionTime": "2016-09-08T07:37:34Z"
 		},
 		{
 			"checksumSHA1": "ITuDW4N6W+2v6VNjo7VtwSiFHvA=",

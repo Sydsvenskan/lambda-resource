@@ -19,7 +19,8 @@ jobs:
         resource: function
         params:
           alias: PROD
-          version_file: upload/version
+          code_dir: sources/sample/function
+
 
 resources:
   - name: sources
@@ -44,3 +45,4 @@ resource_types:
     type: docker-image
     source:
       repository: hdsydsvenskan/lambda-resource
+      tag: dev

@@ -13,7 +13,7 @@ import (
 type CheckCommand struct {
 	// Source definition
 	Source Source `json:"source"`
-	// Params passed to the resource
+	// Version information passed to the resource
 	Version concourse.ResourceVersion `json:"version"`
 }
 

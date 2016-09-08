@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -48,6 +49,8 @@ func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 		return nil, err
 	}
 	if result != nil {
+		fmt.Fprintln(ctx.Log, "successfully invoked function")
+
 		return nil, errors.Wrap(
 			PersistResult(ctx, result),
 			"failed to persist invoke result",
@@ -55,9 +58,8 @@ func (cmd *InCommand) HandleCommand(ctx *concourse.CommandContext) (
 	}
 
 	if result == nil {
-		return nil, errors.New(
-			"function wasn't invoked, did you specify a valid payload?",
-		)
+		fmt.Fprintln(ctx.Log, "function was not invoked")
+		return &concourse.CommandResponse{}, nil
 	}
 
 	return &concourse.CommandResponse{

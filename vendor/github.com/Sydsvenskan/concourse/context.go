@@ -18,7 +18,7 @@ type CommandContext struct {
 	commandName string
 	in          io.Reader
 	out         io.Writer
-	log         io.Writer
+	Log         io.Writer
 }
 
 // Resource is the default resource implementation
@@ -92,7 +92,7 @@ func NewContext(
 	ctx := &CommandContext{
 		in:  in,
 		out: out,
-		log: log,
+		Log: log,
 	}
 
 	ctx.commandName = filepath.Base(args[0])
@@ -112,7 +112,7 @@ func (ctx *CommandContext) Handle(handler ResourceHandler) {
 	case "out":
 		cmdHandler = handler.OutHandler()
 		if handler == nil {
-			fmt.Fprintf(ctx.log,
+			fmt.Fprintf(ctx.Log,
 				"the command %q is not implemented", ctx.commandName,
 			)
 			_, _ = ctx.out.Write([]byte("{}"))
@@ -121,7 +121,7 @@ func (ctx *CommandContext) Handle(handler ResourceHandler) {
 	case "in":
 		cmdHandler = handler.InHandler()
 		if handler == nil {
-			fmt.Fprintf(ctx.log,
+			fmt.Fprintf(ctx.Log,
 				"the command %q is not implemented", ctx.commandName,
 			)
 			_, _ = ctx.out.Write([]byte("{}"))
@@ -130,26 +130,33 @@ func (ctx *CommandContext) Handle(handler ResourceHandler) {
 	case "check":
 		cmdHandler = handler.CheckHandler()
 		if handler == nil {
-			fmt.Fprintf(ctx.log,
+			fmt.Fprintf(ctx.Log,
 				"the command %q is not implemented", ctx.commandName,
 			)
 			_, _ = ctx.out.Write([]byte("[]"))
 			return
 		}
 	default:
-		fmt.Fprintf(ctx.log, "unknown command: %q", ctx.commandName)
+		fmt.Fprintf(ctx.Log, "unknown command: %q", ctx.commandName)
 		os.Exit(1)
 	}
 
 	// Decode the input as the selected command
 	if err := decoder.Decode(cmdHandler); err != nil {
-		fmt.Fprintln(ctx.log, "failed to decode input json", err.Error())
+		fmt.Fprintln(ctx.Log, "failed to decode input json", err.Error())
+	}
+
+	// Change directory if specified
+	if ctx.directory != "" {
+		if err := os.Chdir(ctx.directory); err != nil {
+			fmt.Fprintf(ctx.Log, "failed to change directory to %q\n", ctx.directory)
+		}
 	}
 
 	// Run the command handler
 	res, err := cmdHandler.HandleCommand(ctx)
 	if err != nil {
-		fmt.Fprintln(ctx.log, "failed to run command", err.Error())
+		fmt.Fprintln(ctx.Log, "failed to run command", err.Error())
 		os.Exit(1)
 	}
 
@@ -161,7 +168,7 @@ func (ctx *CommandContext) Handle(handler ResourceHandler) {
 		err = encoder.Encode(res)
 	}
 	if err != nil {
-		fmt.Fprintln(ctx.log, "failed to encode response", err.Error())
+		fmt.Fprintln(ctx.Log, "failed to encode response", err.Error())
 		os.Exit(1)
 	}
 }
