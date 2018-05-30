@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/Zipcar/lambda-resource/concourse"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
-	"github.com/Zipcar/lambda-resource/concourse"
 )
 
 // LambdaErrorType is the type of Lambda invoke errors

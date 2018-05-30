@@ -4,9 +4,9 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/Zipcar/lambda-resource/concourse"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
-	"github.com/Zipcar/lambda-resource/concourse"
 )
 
 // CheckCommand check-command payload

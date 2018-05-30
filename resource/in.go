@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/Zipcar/lambda-resource/concourse"
+	"github.com/pkg/errors"
 )
 
 // InCommand in-command payload
