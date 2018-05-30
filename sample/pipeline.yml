@@ -26,7 +26,7 @@ resources:
   - name: sources
     type: git
     source:
-      uri: git@github.com:Sydsvenskan/lambda-resource.git
+      uri: git@github.com:Zipcar/lambda-resource.git
       branch: master
       paths:
         - sample
@@ -44,5 +44,5 @@ resource_types:
   - name: lambda
     type: docker-image
     source:
-      repository: hdsydsvenskan/lambda-resource
+      repository: docker.zipcar.io/lambda-resource
       tag: dev
